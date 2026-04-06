@@ -1,0 +1,48 @@
+# Root .gitignore to handle subfolder structure
+
+# Dependency directories
+node_modules/
+**/node_modules/
+
+# Build artifacts
+dist/
+**/dist/
+dist-ssr/
+build/
+**/build/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment variables and local settings
+.env
+.env.local
+.env.*.local
+*.local
+
+# OS related files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDEs and Editors
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.project
+.settings/
+.classpath
+
+# Supabase related
+supabase/.temp/
+supabase/functions/import_map.json
