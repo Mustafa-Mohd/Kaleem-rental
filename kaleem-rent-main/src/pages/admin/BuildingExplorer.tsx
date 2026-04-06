@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Building2, Home, User, ChevronLeft, CreditCard, CalendarDays, MapPin, Hash, IndianRupee, Database, RefreshCw } from 'lucide-react';
+import { Building2, Home, User, ChevronLeft, CreditCard, CalendarDays, MapPin, Hash, IndianRupee, Database, RefreshCw, MessageSquare, Send } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
@@ -84,6 +85,7 @@ export default function BuildingExplorer() {
   const [selectedBuilding, setSelectedBuilding] = useState<any>(null);
   const [selectedTenant, setSelectedTenant] = useState<any>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [whatsappTemplate, setWhatsappTemplate] = useState('payment_done');
   const { toast } = useToast();
   const qc = useQueryClient();
 
@@ -371,6 +373,33 @@ export default function BuildingExplorer() {
   const renderTenantHistory = () => {
     const tenantPayments = allPayments.filter((p: any) => p.tenant_id === selectedTenant?.id);
     const flat = allFlats.find((f: any) => f.id === selectedTenant?.flat_id);
+    const currentMonth = format(new Date(), 'MMMM yyyy');
+
+    const handleWhatsAppSend = () => {
+      if (!selectedTenant?.phone) {
+        toast({ title: "No Phone Number", description: "This tenant doesn't have a phone number saved.", variant: 'destructive' });
+        return;
+      }
+
+      const name = selectedTenant.full_name;
+      const building = selectedBuilding?.name || 'the building';
+      const flatNo = flat?.flat_number || 'N/A';
+      const floor = flat?.floor || 'N/A';
+      const amount = Number(selectedTenant.rent_amount).toLocaleString();
+      
+      let message = '';
+      if (whatsappTemplate === 'payment_done') {
+        message = `Hi ${name}, your payment of ₹${amount} for ${building}, Floor ${floor}, Flat ${flatNo} for the month of ${currentMonth} has been received. Thank you!`;
+      } else if (whatsappTemplate === 'payment_reminder') {
+        message = `Hi ${name}, this is a reminder for the rent payment of ₹${amount} for ${building}, Floor ${floor}, Flat ${flatNo} for the month of ${currentMonth}. Please ignore if already paid. Thank you!`;
+      } else {
+        message = `Hi ${name}, regarding ${building}, Flat ${flatNo}...`;
+      }
+
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/${selectedTenant.phone.startsWith('+') ? selectedTenant.phone : '91' + selectedTenant.phone}?text=${encodedMessage}`;
+      window.open(whatsappUrl, '_blank');
+    };
 
     return (
       <div className="grid lg:grid-cols-3 gap-8">
@@ -408,6 +437,31 @@ export default function BuildingExplorer() {
                   <p className="text-sm font-medium">
                     {selectedTenant?.lease_end ? format(new Date(selectedTenant.lease_end), 'MMM dd, yyyy') : '—'}
                   </p>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-border/50 space-y-3">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-2">
+                  <MessageSquare className="h-3 w-3" /> WhatsApp Template
+                </p>
+                <div className="flex gap-2">
+                  <Select value={whatsappTemplate} onValueChange={setWhatsappTemplate}>
+                    <SelectTrigger className="text-xs h-9 bg-background/50 border-primary/20">
+                      <SelectValue placeholder="Select template" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="payment_done">Payment Done</SelectItem>
+                      <SelectItem value="payment_reminder">Remainder Payment</SelectItem>
+                      <SelectItem value="other">Other Option</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    size="sm" 
+                    className="h-9 px-3 bg-green-600 hover:bg-green-700 text-white rounded-md flex-shrink-0"
+                    onClick={handleWhatsAppSend}
+                  >
+                    <Send className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               </div>
             </CardContent>

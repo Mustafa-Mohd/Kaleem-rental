@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Trash2, Pencil, Shuffle } from 'lucide-react';
+import { Plus, Trash2, Pencil, Shuffle, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 
@@ -111,8 +111,15 @@ export default function ManagePayments() {
           const b = localB.find((bx: any) => bx.id === f?.building_id);
           return {
             ...p,
-            tenants: { full_name: t?.full_name || p.tenant_name },
-            flats: { flat_number: f?.flat_number || p.flat_no, buildings: { name: b?.name || p.building_name } }
+            tenants: { 
+              full_name: t?.full_name || p.tenant_name,
+              phone: t?.phone
+            },
+            flats: { 
+              flat_number: f?.flat_number || p.flat_no, 
+              floor: f?.floor || p.floor,
+              buildings: { name: b?.name || p.building_name } 
+            }
           };
         }).sort((a: any, b: any) => new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime());
       }
@@ -299,6 +306,34 @@ export default function ManagePayments() {
                   }`}>{p.payment_status}</span>
                 </td>
                 <td className="px-3 py-2 flex gap-1 justify-end">
+                  <button 
+                    onClick={() => {
+                      const name = p.tenants?.full_name;
+                      const building = p.flats?.buildings?.name;
+                      const flatNo = p.flats?.flat_number;
+                      const floor = p.flats?.floor || 'N/A';
+                      const amount = Number(p.payment_amount).toLocaleString();
+                      const date = format(new Date(p.payment_date), 'MMMM yyyy');
+                      const phone = p.tenants?.phone;
+
+                      if (!phone) {
+                        toast({ title: 'No phone number', variant: 'destructive' });
+                        return;
+                      }
+
+                      let msg = "";
+                      if (p.payment_status === 'paid') {
+                        msg = `Hi ${name}, your payment of ₹${amount} for ${building}, Floor ${floor}, Flat ${flatNo} for the month of ${date} has been received. Thank you!`;
+                      } else {
+                        msg = `Hi ${name}, reminder for rent payment of ₹${amount} for ${building}, Floor ${floor}, Flat ${flatNo} for the month of ${date}. Thank you!`;
+                      }
+
+                      window.open(`https://wa.me/${phone.startsWith('+') ? phone : '91' + phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                    }}
+                    className="p-1 rounded hover:bg-green-50 text-green-600"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                  </button>
                   <button onClick={() => { setEditId(p.id); setTenantId(p.tenant_id); setFlatId(p.flat_id || ''); setAmount(String(p.payment_amount)); setDate(p.payment_date); setStatus(p.payment_status); setMode(p.payment_mode || p.payment_method || 'Cash'); setOpen(true); }} className="p-1 rounded hover:bg-muted"><Pencil className="h-3.5 w-3.5 text-muted-foreground" /></button>
                   <button onClick={() => deleteMutation.mutate(p.id)} className="p-1 rounded hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5 text-destructive" /></button>
                 </td>
