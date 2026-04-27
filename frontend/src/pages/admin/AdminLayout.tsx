@@ -1,5 +1,5 @@
-import { Outlet, NavLink } from 'react-router-dom';
-import { Building2, LayoutGrid, Home, Users, CreditCard, Receipt, Search, Printer } from 'lucide-react';
+import { Outlet, NavLink, Link } from 'react-router-dom';
+import { Building2, LayoutGrid, Home, Users, CreditCard, Receipt, Search, Printer, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const nav = [
@@ -62,15 +62,28 @@ export default function AdminLayout() {
             </NavLink>
           ))}
         </nav>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handlePrint}
-          className="h-8 text-[10px] uppercase font-bold tracking-widest gap-2 bg-muted/50"
-        >
-          <Printer className="h-3.5 w-3.5" />
-          Print Ledger
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            asChild
+            className="h-8 text-[10px] uppercase font-bold tracking-widest gap-2"
+          >
+            <Link to="/home">
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back to Home
+            </Link>
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handlePrint}
+            className="h-8 text-[10px] uppercase font-bold tracking-widest gap-2 bg-muted/50"
+          >
+            <Printer className="h-3.5 w-3.5" />
+            Print Ledger
+          </Button>
+        </div>
       </header>
       <main className="flex-1 p-4 max-w-7xl mx-auto w-full">
         <Outlet />

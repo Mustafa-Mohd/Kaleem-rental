@@ -12,6 +12,7 @@ import ManageTenants from "./pages/admin/ManageTenants";
 import ManagePayments from "./pages/admin/ManagePayments";
 import ManageExpenses from "./pages/admin/ManageExpenses";
 import NotFound from "./pages/NotFound";
+import Home from "./pages/Home";
 
 const queryClient = new QueryClient();
 
@@ -22,7 +23,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/admin" replace />} />
+          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<BuildingExplorer />} />
             <Route path="ledger" element={<Ledger />} />

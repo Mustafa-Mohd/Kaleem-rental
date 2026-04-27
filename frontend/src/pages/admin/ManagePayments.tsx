@@ -316,11 +316,6 @@ export default function ManagePayments() {
                       const date = format(new Date(p.payment_date), 'MMMM yyyy');
                       const phone = p.tenants?.phone;
 
-                      if (!phone) {
-                        toast({ title: 'No phone number', variant: 'destructive' });
-                        return;
-                      }
-
                       let msg = "";
                       if (p.payment_status === 'paid') {
                         msg = `Hi ${name}, your payment of ₹${amount} for ${building}, Floor ${floor}, Flat ${flatNo} for the month of ${date} has been received. Thank you!`;
@@ -328,7 +323,8 @@ export default function ManagePayments() {
                         msg = `Hi ${name}, reminder for rent payment of ₹${amount} for ${building}, Floor ${floor}, Flat ${flatNo} for the month of ${date}. Thank you!`;
                       }
 
-                      window.open(`https://wa.me/${phone.startsWith('+') ? phone : '91' + phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                      const OWNER_WHATSAPP = '917989342090'; // Fixed number — change when ready
+                      window.open(`https://wa.me/${OWNER_WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank');
                     }}
                     className="p-1 rounded hover:bg-green-50 text-green-600"
                   >

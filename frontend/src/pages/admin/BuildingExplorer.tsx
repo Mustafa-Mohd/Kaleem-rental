@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -88,6 +88,62 @@ export default function BuildingExplorer() {
   const [whatsappTemplate, setWhatsappTemplate] = useState('payment_done');
   const { toast } = useToast();
   const qc = useQueryClient();
+
+  // Auto-seed data on first load if localStorage is empty
+  useEffect(() => {
+    const existing = JSON.parse(localStorage.getItem('local_buildings') || '[]');
+    if (existing.length > 0) return; // already seeded
+
+    const bList: any[] = [];
+    const fList: any[] = [];
+    const tList: any[] = [];
+    const pList: any[] = [];
+    const eList: any[] = [];
+    const currentMonth = format(new Date(), 'MMMM-yy').toUpperCase();
+
+    for (const bData of LEDGER_DATA) {
+      const bId = crypto.randomUUID();
+      bList.push({ id: bId, name: bData.name, city: 'Hyderabad',
+        address: bData.name.includes('GAYATRI') ? '367' : bData.name.includes('KY') ? '501' : bData.name.includes('SR NAGAR') ? '206' : '217'
+      });
+      eList.push({
+        id: crypto.randomUUID(), building_id: bId, month: currentMonth,
+        watchmen_salary: 8000 + (Math.floor(Math.random() * 4) * 500),
+        electricity_bill: 1500 + (Math.floor(Math.random() * 10) * 100),
+        water_bill: 500 + (Math.floor(Math.random() * 5) * 100),
+        other_expenses: 200 + (Math.floor(Math.random() * 5) * 50),
+        buildings: { name: bData.name }
+      });
+      for (const fData of bData.flats) {
+        const fId = crypto.randomUUID();
+        const rentPrice = 12000 + (Math.floor(Math.random() * 8) * 1000);
+        fList.push({ id: fId, building_id: bId, flat_number: fData.flat, floor: fData.floor,
+          occupancy_status: fData.tenant ? 'occupied' : 'vacant', rent_amount: rentPrice
+        });
+        if (fData.tenant) {
+          const tId = crypto.randomUUID();
+          const phone = '7989342090'; // placeholder — update per tenant later
+          tList.push({ id: tId, flat_id: fId, full_name: fData.tenant, rent_amount: rentPrice, phone });
+          const months = ['2026-04-05', '2026-03-05', '2026-02-05', '2026-01-05'];
+          months.forEach(mDate => {
+            const allPossibleModes = ['Cash', 'SBI', 'HDFC', 'Bank Transfer', 'Online', 'Check'];
+            const method = allPossibleModes[Math.floor(Math.random() * allPossibleModes.length)];
+            pList.push({ id: crypto.randomUUID(), tenant_id: tId, flat_id: fId,
+              payment_amount: rentPrice, payment_date: mDate, payment_status: 'paid',
+              payment_mode: method, payment_method: method.toLowerCase()
+            });
+          });
+        }
+      }
+    }
+
+    localStorage.setItem('local_buildings', JSON.stringify(bList));
+    localStorage.setItem('local_flats', JSON.stringify(fList));
+    localStorage.setItem('local_tenants', JSON.stringify(tList));
+    localStorage.setItem('local_payments', JSON.stringify(pList));
+    localStorage.setItem('local_expenses', JSON.stringify(eList));
+    qc.invalidateQueries();
+  }, []);
 
   // --- LOCAL STORAGE DATA HANDLING ---
   const getLocal = (key: string) => JSON.parse(localStorage.getItem(key) || '[]');
@@ -397,7 +453,8 @@ export default function BuildingExplorer() {
       }
 
       const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://wa.me/${selectedTenant.phone.startsWith('+') ? selectedTenant.phone : '91' + selectedTenant.phone}?text=${encodedMessage}`;
+      const OWNER_WHATSAPP = '917989342090'; // Fixed number — change when ready
+      const whatsappUrl = `https://wa.me/${OWNER_WHATSAPP}?text=${encodedMessage}`;
       window.open(whatsappUrl, '_blank');
     };
 
