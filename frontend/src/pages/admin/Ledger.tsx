@@ -82,18 +82,18 @@ export default function Ledger() {
               <span className="text-xs text-muted-foreground">{currentMonth}</span>
             </div>
 
-            <div className="flex">
+            <div className="flex flex-col lg:flex-row">
               {/* Flats Table */}
-              <div className="flex-1 min-w-0">
-                <table className="w-full text-sm">
+              <div className="flex-1 min-w-0 overflow-x-auto">
+                <table className="w-full text-sm min-w-[500px]">
                   <thead>
                     <tr className="border-b border-border bg-muted/50">
-                      <th className="text-left px-3 py-1.5 font-medium text-muted-foreground w-20">Flat No</th>
-                      <th className="text-left px-3 py-1.5 font-medium text-muted-foreground">Tenant</th>
-                      <th className="text-left px-3 py-1.5 font-medium text-muted-foreground w-20">Date</th>
-                      <th className="text-right px-3 py-1.5 font-medium text-muted-foreground w-24">Amount</th>
-                      <th className="text-center px-3 py-1.5 font-medium text-muted-foreground w-20">Mode</th>
-                      <th className="text-center px-3 py-1.5 font-medium text-muted-foreground w-20">Status</th>
+                      <th className="text-left px-3 py-1.5 font-medium text-muted-foreground w-20 whitespace-nowrap">Flat No</th>
+                      <th className="text-left px-3 py-1.5 font-medium text-muted-foreground whitespace-nowrap">Tenant</th>
+                      <th className="text-left px-3 py-1.5 font-medium text-muted-foreground w-20 whitespace-nowrap">Date</th>
+                      <th className="text-right px-3 py-1.5 font-medium text-muted-foreground w-24 whitespace-nowrap">Amount</th>
+                      <th className="text-center px-3 py-1.5 font-medium text-muted-foreground w-20 whitespace-nowrap">Mode</th>
+                      <th className="text-center px-3 py-1.5 font-medium text-muted-foreground w-20 whitespace-nowrap">Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -108,20 +108,20 @@ export default function Ledger() {
 
                       return (
                         <tr key={flat.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                          <td className="px-3 py-1.5 font-mono text-xs font-medium">{flat.flat_number}</td>
-                          <td className="px-3 py-1.5 text-xs">
+                          <td className="px-3 py-1.5 font-mono text-xs font-medium whitespace-nowrap">{flat.flat_number}</td>
+                          <td className="px-3 py-1.5 text-xs whitespace-nowrap">
                             {tenant?.full_name || <span className="text-muted-foreground italic">Vacant</span>}
                           </td>
-                          <td className="px-3 py-1.5 text-xs text-muted-foreground">
+                          <td className="px-3 py-1.5 text-xs text-muted-foreground whitespace-nowrap">
                             {payment?.payment_date ? format(new Date(payment.payment_date), 'dd/MM') : '—'}
                           </td>
-                          <td className="px-3 py-1.5 text-xs text-right font-mono">
+                          <td className="px-3 py-1.5 text-xs text-right font-mono whitespace-nowrap">
                             {payment ? `₹${Number(payment.payment_amount).toLocaleString()}` : flat.rent_amount > 0 ? `₹${Number(flat.rent_amount).toLocaleString()}` : '—'}
                           </td>
-                          <td className="px-3 py-1.5 text-xs text-center">
+                          <td className="px-3 py-1.5 text-xs text-center whitespace-nowrap">
                             {payment?.payment_mode || payment?.payment_method || '—'}
                           </td>
-                          <td className="px-3 py-1.5 text-center">
+                          <td className="px-3 py-1.5 text-center whitespace-nowrap">
                             {payment ? (
                               <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${
                                 payment.payment_status === 'paid' ? 'bg-green-100 text-green-700' :
@@ -142,7 +142,7 @@ export default function Ledger() {
               </div>
 
               {/* Expenses Sidebar */}
-              <div className="w-48 border-l border-border bg-muted/30 text-xs">
+              <div className="w-full lg:w-48 lg:border-l border-t lg:border-t-0 border-border bg-muted/30 text-xs flex-shrink-0">
                 <div className="px-3 py-1.5 border-b border-border bg-muted/50 font-medium text-muted-foreground">Expenses</div>
                 <div className="divide-y divide-border/50">
                   <div className="px-3 py-1.5 flex justify-between">

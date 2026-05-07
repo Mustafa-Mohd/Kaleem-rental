@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Building2, Home as HomeIcon, Key, Users, ArrowRight, Star } from 'lucide-react';
+import { Building2, Home as HomeIcon, Key, Users, ArrowRight, Star, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -10,6 +10,7 @@ import Lenis from 'lenis';
 gsap.registerPlugin(ScrollTrigger);
 
 export default function Home() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLHeadingElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
@@ -87,11 +88,13 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-50 overflow-hidden font-sans">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-neutral-950/80 backdrop-blur-md border-b border-neutral-800 px-6 py-4 flex justify-between items-center transition-all duration-300">
+      <nav className="fixed top-0 w-full z-50 bg-neutral-950/80 backdrop-blur-md border-b border-neutral-800 px-4 md:px-6 py-4 flex justify-between items-center transition-all duration-300">
         <div className="text-xl font-bold flex items-center gap-2 text-emerald-400">
           <Building2 className="w-6 h-6" /> Kaleem Rentals
         </div>
-        <div className="flex gap-4">
+        
+        {/* Desktop Nav */}
+        <div className="hidden md:flex gap-4">
           <Button variant="ghost" className="text-white hover:text-emerald-400 hover:bg-neutral-900" asChild>
             <Link to="/login">Sign In</Link>
           </Button>
@@ -99,7 +102,29 @@ export default function Home() {
             <Link to="/admin">Dashboard</Link>
           </Button>
         </div>
+
+        {/* Mobile Toggle */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="md:hidden text-white" 
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </Button>
       </nav>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="fixed top-[73px] left-0 right-0 bg-neutral-950/95 backdrop-blur-md border-b border-neutral-800 p-4 flex flex-col gap-4 z-40 md:hidden shadow-xl">
+          <Button variant="outline" className="w-full border-neutral-700 text-neutral-200" onClick={() => setIsMobileMenuOpen(false)} asChild>
+            <Link to="/login">Sign In</Link>
+          </Button>
+          <Button className="w-full bg-emerald-500 text-neutral-950 hover:bg-emerald-400" onClick={() => setIsMobileMenuOpen(false)} asChild>
+            <Link to="/admin">Dashboard</Link>
+          </Button>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden pt-20">
@@ -108,7 +133,7 @@ export default function Home() {
         </div>
         
         <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
-          <h1 ref={textRef} className="text-6xl md:text-8xl font-black mb-6 tracking-tighter leading-tight overflow-hidden">
+          <h1 ref={textRef} className="text-5xl md:text-8xl font-black mb-6 tracking-tighter leading-tight overflow-hidden">
             <span ref={(el) => splitTextRef.current[0] = el} className="block text-white">Find Your</span>
             <span ref={(el) => splitTextRef.current[1] = el} className="block text-emerald-400">Perfect Home</span>
           </h1>
