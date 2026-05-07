@@ -1,6 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { motion } from 'framer-motion';
+import { Building2, Calendar, CreditCard, Receipt, User, ArrowRight, TrendingUp } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 export default function Ledger() {
   const getLocal = (key: string) => JSON.parse(localStorage.getItem(key) || '[]');
@@ -58,123 +62,191 @@ export default function Ledger() {
   const currentMonth = format(new Date(), 'MMMM-yy').toUpperCase();
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-foreground">Monthly Ledger</h1>
-        <span className="text-sm font-mono text-muted-foreground">{currentMonth}</span>
+    <div className="space-y-10">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Financial Ledger</h1>
+          <p className="text-slate-400 font-bold text-sm mt-1 uppercase tracking-widest flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-primary" /> Monthly Statement • {currentMonth}
+          </p>
+        </div>
+        <div className="flex items-center gap-3 bg-slate-100 p-1.5 rounded-2xl">
+          <Badge variant="outline" className="bg-white text-slate-900 border-none px-4 py-2 rounded-xl font-black text-[10px] tracking-widest shadow-sm">
+            AUTO-SYNC ON
+          </Badge>
+          <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse mr-2" />
+        </div>
       </div>
 
       {buildings.length === 0 && (
-        <p className="text-sm text-muted-foreground text-center py-12">No buildings yet. Add buildings from the Buildings tab.</p>
+        <div className="text-center py-24 bg-white rounded-[3rem] border-4 border-dashed border-slate-100">
+           <Building2 className="h-16 w-16 text-slate-200 mx-auto mb-4" />
+           <p className="text-slate-400 font-bold">No property data found. Please add buildings to start tracking.</p>
+        </div>
       )}
 
-      {buildings.map((building: any) => {
-        const buildingFlats = flats.filter((f: any) => f.building_id === building.id);
-        const buildingExpense = expenses.find((e: any) => e.building_id === building.id && e.month === currentMonth);
+      <div className="space-y-12">
+        {buildings.map((building: any, bIdx: number) => {
+          const buildingFlats = flats.filter((f: any) => f.building_id === building.id);
+          const buildingExpense = expenses.find((e: any) => e.building_id === building.id && e.month === currentMonth);
+          const totalExpenses = buildingExpense 
+            ? Number(buildingExpense.watchmen_salary) + Number(buildingExpense.electricity_bill) + Number(buildingExpense.water_bill) + Number(buildingExpense.other_expenses)
+            : 0;
+          
+          const totalIncome = buildingFlats.reduce((acc: number, f: any) => {
+            const payment = payments.find((p: any) => p.flat_id === f.id && p.payment_date?.startsWith(format(new Date(), 'yyyy-MM')));
+            return acc + (payment ? Number(payment.payment_amount) : 0);
+          }, 0);
 
-        return (
-          <div key={building.id} className="bg-card border border-border rounded-lg overflow-hidden">
-            {/* Building Header */}
-            <div className="bg-accent px-4 py-2 flex items-center justify-between">
-              <span className="font-semibold text-sm text-accent-foreground">
-                {building.name}
-              </span>
-              <span className="text-xs text-muted-foreground">{currentMonth}</span>
-            </div>
-
-            <div className="flex flex-col lg:flex-row">
-              {/* Flats Table */}
-              <div className="flex-1 min-w-0 overflow-x-auto">
-                <table className="w-full text-sm min-w-[500px]">
-                  <thead>
-                    <tr className="border-b border-border bg-muted/50">
-                      <th className="text-left px-3 py-1.5 font-medium text-muted-foreground w-20 whitespace-nowrap">Flat No</th>
-                      <th className="text-left px-3 py-1.5 font-medium text-muted-foreground whitespace-nowrap">Tenant</th>
-                      <th className="text-left px-3 py-1.5 font-medium text-muted-foreground w-20 whitespace-nowrap">Date</th>
-                      <th className="text-right px-3 py-1.5 font-medium text-muted-foreground w-24 whitespace-nowrap">Amount</th>
-                      <th className="text-center px-3 py-1.5 font-medium text-muted-foreground w-20 whitespace-nowrap">Mode</th>
-                      <th className="text-center px-3 py-1.5 font-medium text-muted-foreground w-20 whitespace-nowrap">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {buildingFlats.length === 0 && (
-                      <tr><td colSpan={6} className="text-center py-4 text-muted-foreground text-xs">No flats added</td></tr>
-                    )}
-                    {buildingFlats.map((flat: any) => {
-                      const tenant = tenants.find((t: any) => t.flat_id === flat.id);
-                      const payment = payments.find(
-                        (p: any) => p.flat_id === flat.id && p.payment_date?.startsWith(format(new Date(), 'yyyy-MM'))
-                      );
-
-                      return (
-                        <tr key={flat.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                          <td className="px-3 py-1.5 font-mono text-xs font-medium whitespace-nowrap">{flat.flat_number}</td>
-                          <td className="px-3 py-1.5 text-xs whitespace-nowrap">
-                            {tenant?.full_name || <span className="text-muted-foreground italic">Vacant</span>}
-                          </td>
-                          <td className="px-3 py-1.5 text-xs text-muted-foreground whitespace-nowrap">
-                            {payment?.payment_date ? format(new Date(payment.payment_date), 'dd/MM') : '—'}
-                          </td>
-                          <td className="px-3 py-1.5 text-xs text-right font-mono whitespace-nowrap">
-                            {payment ? `₹${Number(payment.payment_amount).toLocaleString()}` : flat.rent_amount > 0 ? `₹${Number(flat.rent_amount).toLocaleString()}` : '—'}
-                          </td>
-                          <td className="px-3 py-1.5 text-xs text-center whitespace-nowrap">
-                            {payment?.payment_mode || payment?.payment_method || '—'}
-                          </td>
-                          <td className="px-3 py-1.5 text-center whitespace-nowrap">
-                            {payment ? (
-                              <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                                payment.payment_status === 'paid' ? 'bg-green-100 text-green-700' :
-                                payment.payment_status === 'late' ? 'bg-red-100 text-red-700' :
-                                'bg-yellow-100 text-yellow-700'
-                              }`}>
-                                {payment.payment_status}
-                              </span>
-                            ) : tenant ? (
-                              <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-100 text-yellow-700">pending</span>
-                            ) : '—'}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+          return (
+            <motion.div 
+              key={building.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: bIdx * 0.1 }}
+              className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden"
+            >
+              {/* Building Header */}
+              <div className="bg-slate-900 px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center text-primary">
+                    <Building2 className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black text-white tracking-tight">{building.name}</h2>
+                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">{building.city || 'HYDERABAD'}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-6">
+                   <div className="text-right">
+                      <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Monthly Income</p>
+                      <p className="text-xl font-black text-white font-mono">₹{totalIncome.toLocaleString()}</p>
+                   </div>
+                   <div className="w-px h-10 bg-white/10 hidden sm:block" />
+                   <div className="text-right">
+                      <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Expenses</p>
+                      <p className="text-xl font-black text-rose-400 font-mono">₹{totalExpenses.toLocaleString()}</p>
+                   </div>
+                </div>
               </div>
 
-              {/* Expenses Sidebar */}
-              <div className="w-full lg:w-48 lg:border-l border-t lg:border-t-0 border-border bg-muted/30 text-xs flex-shrink-0">
-                <div className="px-3 py-1.5 border-b border-border bg-muted/50 font-medium text-muted-foreground">Expenses</div>
-                <div className="divide-y divide-border/50">
-                  <div className="px-3 py-1.5 flex justify-between">
-                    <span className="text-muted-foreground">Watchmen</span>
-                    <span className="font-mono">{buildingExpense ? `₹${Number(buildingExpense.watchmen_salary).toLocaleString()}` : '—'}</span>
+              <div className="flex flex-col xl:flex-row">
+                {/* Flats Table */}
+                <div className="flex-1 overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="bg-slate-50/50 border-b border-slate-100">
+                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Unit</th>
+                        <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tenant</th>
+                        <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Date</th>
+                        <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Amount</th>
+                        <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Mode</th>
+                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {buildingFlats.length === 0 && (
+                        <tr><td colSpan={6} className="text-center py-12 text-slate-400 font-bold">No units registered for this property</td></tr>
+                      )}
+                      {buildingFlats.map((flat: any) => {
+                        const tenant = tenants.find((t: any) => t.flat_id === flat.id);
+                        const payment = payments.find(
+                          (p: any) => p.flat_id === flat.id && p.payment_date?.startsWith(format(new Date(), 'yyyy-MM'))
+                        );
+
+                        return (
+                          <tr key={flat.id} className="hover:bg-slate-50/50 transition-colors group">
+                            <td className="px-8 py-5 font-black text-slate-900 font-mono text-sm">{flat.flat_number}</td>
+                            <td className="px-6 py-5">
+                              {tenant ? (
+                                <div className="flex items-center gap-2">
+                                   <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                      <User className="h-3 w-3" />
+                                   </div>
+                                   <span className="text-sm font-bold text-slate-700">{tenant.full_name}</span>
+                                </div>
+                              ) : (
+                                <span className="text-xs text-slate-300 font-black uppercase tracking-tighter italic">Vacant Unit</span>
+                              )}
+                            </td>
+                            <td className="px-6 py-5 text-xs font-bold text-slate-500">
+                              {payment?.payment_date ? format(new Date(payment.payment_date), 'MMM dd') : '—'}
+                            </td>
+                            <td className="px-6 py-5 text-right font-black text-slate-900 font-mono text-sm">
+                              {payment ? `₹${Number(payment.payment_amount).toLocaleString()}` : flat.rent_amount > 0 ? `₹${Number(flat.rent_amount).toLocaleString()}` : '—'}
+                            </td>
+                            <td className="px-6 py-5 text-center">
+                               <Badge variant="outline" className="bg-slate-100 border-none text-[9px] font-black uppercase tracking-tighter text-slate-500">
+                                 {payment?.payment_mode || payment?.payment_method || '—'}
+                               </Badge>
+                            </td>
+                            <td className="px-8 py-5 text-center">
+                              {payment ? (
+                                <Badge className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border-none ${
+                                  payment.payment_status === 'paid' ? 'bg-emerald-100 text-emerald-700' :
+                                  payment.payment_status === 'late' ? 'bg-rose-100 text-rose-700' :
+                                  'bg-amber-100 text-amber-700'
+                                }`}>
+                                  {payment.payment_status}
+                                </Badge>
+                              ) : tenant ? (
+                                <Badge className="px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 border-none">pending</Badge>
+                              ) : '—'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Expenses Sidebar */}
+                <div className="w-full xl:w-72 bg-slate-50 p-8 border-t xl:border-t-0 xl:border-l border-slate-100">
+                  <div className="flex items-center justify-between mb-6">
+                     <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                        <Receipt className="h-4 w-4 text-primary" /> Building Expenses
+                     </h3>
                   </div>
-                  <div className="px-3 py-1.5 flex justify-between">
-                    <span className="text-muted-foreground">Electricity</span>
-                    <span className="font-mono">{buildingExpense ? `₹${Number(buildingExpense.electricity_bill).toLocaleString()}` : '—'}</span>
-                  </div>
-                  <div className="px-3 py-1.5 flex justify-between">
-                    <span className="text-muted-foreground">Water</span>
-                    <span className="font-mono">{buildingExpense ? `₹${Number(buildingExpense.water_bill).toLocaleString()}` : '—'}</span>
-                  </div>
-                  <div className="px-3 py-1.5 flex justify-between">
-                    <span className="text-muted-foreground">Other</span>
-                    <span className="font-mono">{buildingExpense ? `₹${Number(buildingExpense.other_expenses).toLocaleString()}` : '—'}</span>
-                  </div>
-                  <div className="px-3 py-1.5 flex justify-between font-semibold">
-                    <span>Total</span>
-                    <span className="font-mono">
-                      {buildingExpense
-                        ? `₹${(Number(buildingExpense.watchmen_salary) + Number(buildingExpense.electricity_bill) + Number(buildingExpense.water_bill) + Number(buildingExpense.other_expenses)).toLocaleString()}`
-                        : '—'}
-                    </span>
+                  <div className="space-y-4">
+                    <ExpenseRow label="Watchman" amount={buildingExpense?.watchmen_salary} />
+                    <ExpenseRow label="Electricity" amount={buildingExpense?.electricity_bill} />
+                    <ExpenseRow label="Water" amount={buildingExpense?.water_bill} />
+                    <ExpenseRow label="Maintenance" amount={buildingExpense?.other_expenses} />
+                    
+                    <div className="pt-6 mt-6 border-t border-slate-200">
+                       <div className="flex justify-between items-center">
+                          <span className="text-xs font-black text-slate-900 uppercase tracking-widest">Total Outflow</span>
+                          <span className="text-lg font-black text-rose-600 font-mono">₹{totalExpenses.toLocaleString()}</span>
+                       </div>
+                    </div>
+
+                    <div className="pt-8">
+                       <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                          <div className="flex items-center justify-between mb-1">
+                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Net Profit</span>
+                             <TrendingUp className="h-3 w-3 text-emerald-500" />
+                          </div>
+                          <p className="text-2xl font-black text-emerald-600 font-mono">₹{(totalIncome - totalExpenses).toLocaleString()}</p>
+                       </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        );
-      })}
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ExpenseRow({ label, amount }: { label: string, amount: any }) {
+  return (
+    <div className="flex justify-between items-center group">
+      <span className="text-xs font-bold text-slate-500">{label}</span>
+      <span className="text-sm font-black text-slate-900 font-mono group-hover:text-primary transition-colors">
+        {amount ? `₹${Number(amount).toLocaleString()}` : '—'}
+      </span>
     </div>
   );
 }

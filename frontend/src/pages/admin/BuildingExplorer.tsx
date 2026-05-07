@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Building2, Home, User, ChevronLeft, CreditCard, CalendarDays, MapPin, Hash, IndianRupee, Database, RefreshCw, MessageSquare, Send } from 'lucide-react';
+import { Building2, Home, User, ChevronLeft, CreditCard, CalendarDays, MapPin, IndianRupee, Database, RefreshCw, MessageSquare, Send, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -89,10 +89,9 @@ export default function BuildingExplorer() {
   const { toast } = useToast();
   const qc = useQueryClient();
 
-  // Auto-seed data on first load if localStorage is empty
   useEffect(() => {
     const existing = JSON.parse(localStorage.getItem('local_buildings') || '[]');
-    if (existing.length > 0) return; // already seeded
+    if (existing.length > 0) return;
 
     const bList: any[] = [];
     const fList: any[] = [];
@@ -122,7 +121,7 @@ export default function BuildingExplorer() {
         });
         if (fData.tenant) {
           const tId = crypto.randomUUID();
-          const phone = '7989342090'; // placeholder — update per tenant later
+          const phone = '7989342090'; 
           tList.push({ id: tId, flat_id: fId, full_name: fData.tenant, rent_amount: rentPrice, phone });
           const months = ['2026-04-05', '2026-03-05', '2026-02-05', '2026-01-05'];
           months.forEach(mDate => {
@@ -145,7 +144,6 @@ export default function BuildingExplorer() {
     qc.invalidateQueries();
   }, []);
 
-  // --- LOCAL STORAGE DATA HANDLING ---
   const getLocal = (key: string) => JSON.parse(localStorage.getItem(key) || '[]');
   const setLocal = (key: string, data: any) => localStorage.setItem(key, JSON.stringify(data));
 
@@ -171,7 +169,6 @@ export default function BuildingExplorer() {
                    bData.name.includes('SR NAGAR') ? '206' : '217'
         });
 
-        // Add 1 random expense record per building
         eList.push({
           id: crypto.randomUUID(),
           building_id: bId,
@@ -200,7 +197,6 @@ export default function BuildingExplorer() {
             const phone = '9' + Math.floor(100000000 + Math.random() * 900000000);
             tList.push({ id: tId, flat_id: fId, full_name: fData.tenant, rent_amount: rentPrice, phone: phone });
 
-            // Last 4 months of payments
             const months = ['2026-04-05', '2026-03-05', '2026-02-05', '2026-01-05'];
             months.forEach(mDate => {
               const allPossibleModes = ['Cash', 'SBI', 'HDFC', 'Bank Transfer', 'Online', 'Check'];
@@ -226,7 +222,6 @@ export default function BuildingExplorer() {
     }
   };
 
-  // Queries (Primary: Local Storage Fallback)
   const { data: buildings = [], isLoading: loadingBuildings } = useQuery({
     queryKey: ['buildings'],
     queryFn: async () => { 
@@ -267,7 +262,6 @@ export default function BuildingExplorer() {
     },
   });
 
-  // Handlers
   const handleSelectBuilding = (building: any) => {
     setSelectedBuilding(building);
     setView('flats');
@@ -283,14 +277,12 @@ export default function BuildingExplorer() {
     else if (view === 'flats') setView('buildings');
   };
 
-  // Rendering
   const renderBuildings = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
       {buildings.map((building: any, idx: number) => {
         const buildingFlats = allFlats.filter(f => f.building_id === building.id);
         const occupiedCount = buildingFlats.filter(f => f.occupancy_status === 'occupied').length;
         
-        // Random fallback images for buildings without an image_url
         const fallbackImages = [
           'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800&auto=format&fit=crop',
           'https://images.unsplash.com/photo-1545324418-4121f083f24b?q=80&w=800&auto=format&fit=crop',
@@ -304,7 +296,6 @@ export default function BuildingExplorer() {
         const propertyPhoto = "https://lh3.googleusercontent.com/gps-cs-s/AHVAwep9Ej1-U04a7IGz3qCkuQZe5eC_QUTSFRyDqVZfcvuHcnDohv8UvmAfS70fBbGJo5yXJpxGT5CcCiJd6MubVOT41whD-p60-wT2IiJ1yg5jbs4gTgEBYlTPyWXlQm-liesS-p18sYZqqK9Q=s846-k-no";
         const srNagarPhoto = "https://cdn.confident-group.com/wp-content/uploads/2025/06/11152708/Residential-high-rises-1024x679.jpg";
 
-        // Apply provided photo to Mustafa, Lake View, and the Last building
         const isMustafa = building.name.toLowerCase().includes('mustafa');
         const isLakeView = building.name.toLowerCase().includes('lake view');
         const isLastBuilding = idx === buildings.length - 1;
@@ -322,41 +313,55 @@ export default function BuildingExplorer() {
         return (
           <motion.div
             key={building.id}
-            whileHover={{ y: -4 }}
-            className="cursor-pointer"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: idx * 0.05 }}
+            whileHover={{ y: -8 }}
+            className="cursor-pointer group"
             onClick={() => handleSelectBuilding(building)}
           >
-            <Card className="h-full border-border/50 hover:border-primary/50 transition-colors bg-card/50 backdrop-blur-sm overflow-hidden">
-              <div className="h-48 bg-primary/5 flex items-center justify-center border-b border-border/10 overflow-hidden relative">
+            <Card className="h-full border-slate-200/60 hover:border-primary/40 transition-all duration-300 bg-white shadow-sm hover:shadow-xl hover:shadow-primary/5 overflow-hidden rounded-[2rem]">
+              <div className="h-56 overflow-hidden relative">
                 <img 
                   src={displayImage} 
                   alt={building.name} 
-                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-110" 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
-                <div className="absolute top-3 right-3">
-                  <Badge variant="secondary" className="bg-background/80 backdrop-blur-md">
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-80" />
+                <div className="absolute top-4 right-4">
+                  <Badge variant="secondary" className="bg-white/90 backdrop-blur-md text-slate-900 border-none px-3 py-1 font-bold shadow-sm">
                     {buildingFlats.length} Units
                   </Badge>
                 </div>
+                <div className="absolute bottom-4 left-4">
+                  <p className="text-white/70 text-xs font-bold uppercase tracking-widest flex items-center gap-1">
+                    <MapPin className="h-3 w-3 text-primary" /> {building.city || 'Hyderabad'}
+                  </p>
+                </div>
               </div>
-              <CardHeader className="p-4">
-                <CardTitle className="text-xl font-bold text-foreground">{building.name}</CardTitle>
-                <div className="flex items-center text-sm text-muted-foreground mt-1">
-                  <MapPin className="h-3.5 w-3.5 mr-1" />
-                  {building.city || 'Hyderabad'}
+              <CardHeader className="p-6">
+                <CardTitle className="text-2xl font-bold text-slate-900 group-hover:text-primary transition-colors">{building.name}</CardTitle>
+                <div className="flex items-center text-sm text-slate-500 mt-1 font-medium italic">
+                  Premium Residential Property
                 </div>
               </CardHeader>
-              <CardContent className="p-4 pt-0">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Occupancy</span>
-                  <span className="font-semibold">{occupiedCount}/{buildingFlats.length}</span>
+              <CardContent className="p-6 pt-0">
+                <div className="flex items-center justify-between text-sm mb-2">
+                  <span className="text-slate-500 font-bold uppercase tracking-tighter">Current Occupancy</span>
+                  <span className="font-bold text-slate-900">{occupiedCount} <span className="text-slate-400">/ {buildingFlats.length}</span></span>
                 </div>
-                <div className="w-full h-1.5 bg-muted rounded-full mt-2 overflow-hidden">
-                  <div 
-                    className="h-full bg-primary" 
-                    style={{ width: `${buildingFlats.length > 0 ? (occupiedCount / buildingFlats.length) * 100 : 0}%` }}
+                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-50">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${buildingFlats.length > 0 ? (occupiedCount / buildingFlats.length) * 100 : 0}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                    className="h-full bg-gradient-to-r from-primary to-primary/80" 
                   />
+                </div>
+                <div className="mt-6 flex justify-end">
+                   <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-inner">
+                      <ArrowRight className="h-5 w-5" />
+                   </div>
                 </div>
               </CardContent>
             </Card>
@@ -371,15 +376,14 @@ export default function BuildingExplorer() {
     const floors = [...new Set(buildingFlats.map((f: any) => Number(f.floor)))].sort((a: any, b: any) => b - a);
 
     return (
-      <div className="space-y-8">
+      <div className="space-y-12">
         {floors.map((floor: number) => (
-          <div key={floor} className="space-y-4">
-            <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-              <span className="w-8 h-[1px] bg-border" />
-              Floor {floor}
-              <span className="flex-1 h-[1px] bg-border" />
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div key={floor} className="space-y-6">
+            <div className="flex items-center gap-4">
+               <div className="px-4 py-1.5 bg-slate-900 text-white rounded-full text-xs font-black tracking-[0.2em] uppercase">Floor {floor}</div>
+               <div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent" />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
               {buildingFlats
                 .filter((f: any) => Number(f.floor) === floor)
                 .sort((a: any, b: any) => (a.flat_number || "").localeCompare(b.flat_number || ""))
@@ -390,32 +394,35 @@ export default function BuildingExplorer() {
                   return (
                     <motion.div
                       key={flat.id}
-                      whileHover={{ scale: 1.02 }}
-                      className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                      whileHover={{ y: -4 }}
+                      className={`group p-6 rounded-3xl border-2 transition-all duration-300 cursor-pointer text-center relative overflow-hidden ${
                         isOccupied 
-                          ? 'bg-primary/5 border-primary/20 hover:border-primary/40' 
-                          : 'bg-muted/50 border-border/50 hover:bg-muted opacity-60'
+                          ? 'bg-white border-primary/20 shadow-sm hover:shadow-lg hover:border-primary/50' 
+                          : 'bg-slate-50/50 border-slate-200/50 hover:border-slate-300 opacity-60'
                       }`}
                       onClick={() => isOccupied && tenant && handleSelectTenant(tenant)}
                     >
-                      <div className="flex flex-col items-center text-center gap-2">
-                        <span className="text-lg font-bold font-mono">{flat.flat_number}</span>
-                        <div className={`p-2 rounded-full ${isOccupied ? 'bg-primary/10' : 'bg-muted'}`}>
-                          <User className={`h-4 w-4 ${isOccupied ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <div className="relative z-10 flex flex-col items-center gap-3">
+                        <span className="text-2xl font-black text-slate-900 font-mono tracking-tighter">{flat.flat_number}</span>
+                        <div className={`p-3 rounded-2xl transition-colors ${isOccupied ? 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white' : 'bg-slate-200 text-slate-400'}`}>
+                          <User className="h-5 w-5" />
                         </div>
                         {isOccupied ? (
-                          <div className="space-y-0.5">
-                            <p className="text-[11px] font-medium text-foreground truncate w-24">
+                          <div className="space-y-1">
+                            <p className="text-xs font-bold text-slate-900 truncate w-full px-2">
                               {tenant?.full_name}
                             </p>
-                            <Badge variant="outline" className="text-[10px] h-4 px-1 border-primary/20 text-primary">
-                               Occupied
-                            </Badge>
+                            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-black uppercase tracking-widest">
+                               Active
+                            </div>
                           </div>
                         ) : (
-                          <span className="text-[10px] text-muted-foreground italic">Vacant</span>
+                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic">Vacant</span>
                         )}
                       </div>
+                      {isOccupied && (
+                        <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-primary/5 rounded-full group-hover:scale-150 transition-transform duration-500" />
+                      )}
                     </motion.div>
                   );
                 })}
@@ -453,71 +460,72 @@ export default function BuildingExplorer() {
       }
 
       const encodedMessage = encodeURIComponent(message);
-      const OWNER_WHATSAPP = '917989342090'; // Fixed number — change when ready
+      const OWNER_WHATSAPP = '917989342090'; 
       const whatsappUrl = `https://wa.me/${OWNER_WHATSAPP}?text=${encodedMessage}`;
       window.open(whatsappUrl, '_blank');
     };
 
     return (
-      <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1 space-y-6">
-          <Card className="border-border/50 bg-card/30">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <CardTitle>{selectedTenant?.full_name}</CardTitle>
-                  <CardDescription>{selectedTenant?.phone || 'No phone'}</CardDescription>
-                </div>
-              </div>
+      <div className="grid lg:grid-cols-3 gap-10 items-start">
+        <div className="lg:col-span-1 space-y-8">
+          <Card className="border-none shadow-xl shadow-slate-200/50 bg-white rounded-[2.5rem] overflow-hidden">
+            <div className="h-32 bg-gradient-to-br from-primary to-primary/60 relative">
+               <div className="absolute -bottom-10 left-8">
+                  <div className="h-24 w-24 rounded-3xl bg-white p-1 shadow-lg">
+                    <div className="w-full h-full bg-slate-50 rounded-2xl flex items-center justify-center text-primary border-2 border-slate-100">
+                       <User className="h-10 w-10" />
+                    </div>
+                  </div>
+               </div>
+            </div>
+            <CardHeader className="pt-16 px-8">
+              <CardTitle className="text-2xl font-black text-slate-900">{selectedTenant?.full_name}</CardTitle>
+              <CardDescription className="text-slate-500 font-bold tracking-tight">Verified Tenant • {selectedTenant?.phone || 'No phone'}</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Flat No</p>
-                  <p className="text-sm font-mono font-medium">{flat?.flat_number || '—'}</p>
+            <CardContent className="px-8 pb-8 space-y-8">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] uppercase tracking-widest text-slate-400 font-black mb-1">Unit No</p>
+                  <p className="text-lg font-black text-slate-900 font-mono">{flat?.flat_number || '—'}</p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Rent Amount</p>
-                  <p className="text-sm font-mono font-medium">₹{Number(selectedTenant?.rent_amount).toLocaleString()}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Lease Starts</p>
-                  <p className="text-sm font-medium">
-                    {selectedTenant?.lease_start ? format(new Date(selectedTenant.lease_start), 'MMM dd, yyyy') : '—'}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Lease Ends</p>
-                  <p className="text-sm font-medium">
-                    {selectedTenant?.lease_end ? format(new Date(selectedTenant.lease_end), 'MMM dd, yyyy') : '—'}
-                  </p>
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] uppercase tracking-widest text-slate-400 font-black mb-1">Monthly Rent</p>
+                  <p className="text-lg font-black text-slate-900 font-mono">₹{Number(selectedTenant?.rent_amount).toLocaleString()}</p>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-border/50 space-y-3">
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-2">
-                  <MessageSquare className="h-3 w-3" /> WhatsApp Template
+              <div className="space-y-4">
+                 <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-500 font-bold">Lease Start</span>
+                    <span className="font-black text-slate-900">{selectedTenant?.lease_start ? format(new Date(selectedTenant.lease_start), 'MMM dd, yyyy') : '—'}</span>
+                 </div>
+                 <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-500 font-bold">Lease End</span>
+                    <span className="font-black text-slate-900">{selectedTenant?.lease_end ? format(new Date(selectedTenant.lease_end), 'MMM dd, yyyy') : '—'}</span>
+                 </div>
+              </div>
+
+              <div className="pt-6 border-t border-slate-100 space-y-4">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-black flex items-center gap-2">
+                  <MessageSquare className="h-3.5 w-3.5 text-primary" /> WhatsApp Notify
                 </p>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <Select value={whatsappTemplate} onValueChange={setWhatsappTemplate}>
-                    <SelectTrigger className="text-xs h-9 bg-background/50 border-primary/20">
+                    <SelectTrigger className="h-12 bg-slate-50 border-slate-200 rounded-xl font-bold text-xs">
                       <SelectValue placeholder="Select template" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-xl border-slate-200">
                       <SelectItem value="payment_done">Payment Done</SelectItem>
                       <SelectItem value="payment_reminder">Remainder Payment</SelectItem>
                       <SelectItem value="other">Other Option</SelectItem>
                     </SelectContent>
                   </Select>
                   <Button 
-                    size="sm" 
-                    className="h-9 px-3 bg-green-600 hover:bg-green-700 text-white rounded-md flex-shrink-0"
+                    size="icon" 
+                    className="h-12 w-12 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl flex-shrink-0 shadow-lg shadow-emerald-500/20 active:scale-95 transition-all"
                     onClick={handleWhatsAppSend}
                   >
-                    <Send className="h-3.5 w-3.5" />
+                    <Send className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
@@ -525,50 +533,51 @@ export default function BuildingExplorer() {
           </Card>
         </div>
 
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-lg">Payment History</h3>
-            <Badge variant="secondary">{tenantPayments.length} Payments</Badge>
+        <div className="lg:col-span-2 space-y-6">
+          <div className="flex items-center justify-between px-2">
+            <h3 className="font-black text-2xl text-slate-900 tracking-tight">Ledger Records</h3>
+            <Badge className="bg-slate-900 text-white border-none px-4 py-1 rounded-full font-black text-[10px] tracking-widest">{tenantPayments.length} PAYMENTS</Badge>
           </div>
           
-          <div className="space-y-3">
-            {tenantPayments.map((payment: any) => (
+          <div className="space-y-4">
+            {tenantPayments.map((payment: any, pIdx: number) => (
               <motion.div
                 key={payment.id}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-card/30 hover:bg-card/50 transition-colors"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: pIdx * 0.05 }}
+                className="group flex items-center justify-between p-6 rounded-[2rem] border-2 border-slate-100 bg-white hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-md"
               >
-                <div className="flex items-center gap-4">
-                  <div className={`p-2 rounded-lg ${
-                    payment.payment_status === 'paid' ? 'bg-green-100/10 text-green-600' : 'bg-yellow-100/10 text-yellow-600'
+                <div className="flex items-center gap-6">
+                  <div className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-all ${
+                    payment.payment_status === 'paid' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
                   }`}>
-                    <CreditCard className="h-5 w-5" />
+                    <CreditCard className="h-6 w-6" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold">₹{Number(payment.payment_amount).toLocaleString()}</p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <CalendarDays className="h-3 w-3" />
+                    <p className="text-xl font-black text-slate-900 font-mono">₹{Number(payment.payment_amount).toLocaleString()}</p>
+                    <div className="flex items-center gap-2 text-xs text-slate-400 font-bold mt-1">
+                      <CalendarDays className="h-3.5 w-3.5" />
                       {format(new Date(payment.payment_date), 'MMMM dd, yyyy')}
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <Badge className={
-                    payment.payment_status === 'paid' ? 'bg-green-100 text-green-700 hover:bg-green-100' : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100'
-                  }>
-
-                    {payment.payment_status}
+                <div className="text-right space-y-2">
+                  <Badge className={`px-4 py-1 rounded-full font-black text-[10px] tracking-widest border-none ${
+                    payment.payment_status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                  }`}>
+                    {payment.payment_status.toUpperCase()}
                   </Badge>
-                  <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-tighter">
-                    {payment.payment_method || payment.payment_mode}
+                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-tighter">
+                    via {payment.payment_method || payment.payment_mode || 'Manual'}
                   </p>
                 </div>
               </motion.div>
             ))}
             {tenantPayments.length === 0 && (
-              <div className="text-center py-12 border border-dashed border-border rounded-xl">
-                <p className="text-muted-foreground text-sm">No payment history found for this tenant.</p>
+              <div className="text-center py-20 border-4 border-dashed border-slate-100 rounded-[3rem]">
+                <Database className="h-12 w-12 text-slate-200 mx-auto mb-4" />
+                <p className="text-slate-400 font-bold">No payment history found for this tenant.</p>
               </div>
             )}
           </div>
@@ -578,36 +587,36 @@ export default function BuildingExplorer() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      <div className="mb-8 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+    <div className="w-full">
+      <div className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-6">
           {view !== 'buildings' && (
-            <Button variant="outline" size="sm" onClick={goBack} className="rounded-full h-8 w-8 p-0">
-              <ChevronLeft className="h-4 w-4" />
+            <Button variant="outline" size="icon" onClick={goBack} className="rounded-2xl h-12 w-12 border-slate-200 hover:bg-slate-100 transition-all active:scale-90">
+              <ChevronLeft className="h-6 w-6" />
             </Button>
           )}
           <div>
-            <h1 className="text-2xl font-bold text-foreground">
-              {view === 'buildings' ? 'Property Explorer' : view === 'flats' ? selectedBuilding?.name : selectedTenant?.full_name}
+            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">
+              {view === 'buildings' ? 'Explorer' : view === 'flats' ? selectedBuilding?.name : 'Tenant Profile'}
             </h1>
-            <p className="text-sm text-muted-foreground">
-              {view === 'buildings' ? 'Select a building to view its flats' : 
-               view === 'flats' ? `Showing ${allFlats.filter(f => f.building_id === selectedBuilding?.id).length} units` : 
-               'Tenant detailed payment history'}
+            <p className="text-slate-400 font-bold text-sm mt-1 uppercase tracking-widest">
+              {view === 'buildings' ? 'Real-time Property Management Dashboard' : 
+               view === 'flats' ? `Units Portfolio Management` : 
+               'Detailed Financial Ledger'}
             </p>
           </div>
         </div>
         
         {view === 'buildings' && (
           <Button 
-            variant="outline" 
-            size="sm" 
+            variant="default" 
+            size="lg" 
             onClick={syncLedgerData} 
             disabled={isSyncing}
-            className="flex items-center gap-2 border-dashed h-9 px-4 font-bold text-xs uppercase transition-all hover:bg-primary hover:text-primary-foreground"
+            className="flex items-center gap-3 h-14 px-8 font-black text-xs uppercase tracking-widest transition-all hover:scale-105 rounded-2xl shadow-xl shadow-primary/20"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-            {isSyncing ? 'Syncing...' : 'Sync Ledger Data'}
+            <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : 'Sync Data'}
           </Button>
         )}
       </div>
@@ -615,10 +624,10 @@ export default function BuildingExplorer() {
       <AnimatePresence mode="wait">
         <motion.div
            key={view}
-           initial={{ opacity: 0, y: 10 }}
-           animate={{ opacity: 1, y: 0 }}
-           exit={{ opacity: 0, y: -10 }}
-           transition={{ duration: 0.2 }}
+           initial={{ opacity: 0, x: 20 }}
+           animate={{ opacity: 1, x: 0 }}
+           exit={{ opacity: 0, x: -20 }}
+           transition={{ duration: 0.3, ease: "circOut" }}
         >
           {view === 'buildings' && renderBuildings()}
           {view === 'flats' && renderFlats()}
